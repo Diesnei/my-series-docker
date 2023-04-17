@@ -1,0 +1,50 @@
+version: "3.9"
+
+services:
+  database:
+    container_name: database
+    image: postgres:latest
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: my_series
+      POSTGRES_PASSWORD: my_series
+      POSTGRES_DB: my_series
+    networks:
+      - bridge
+    ports:
+      - 5432:5432
+
+  app:
+    container_name: app
+    image: diesnei/my-series-app:v1.0
+    volumes:
+      - ../backend:/app/backend
+      - ../frontend:/app/frontend
+    networks:
+      - bridge
+    ports:
+      # PHP
+      - 9000:9000
+      # Node
+      - 3000:3000
+    depends_on:
+      - database
+
+  nginx:
+    container_name: nginx
+    image: nginx:latest
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../frontend/build:/usr/share/nginx/html:ro
+    ports:
+      - 8080:80
+    depends_on:
+      - app
+
+networks:
+  bridge:
+    driver: bridge
+
+volumes:
+  db_data:
